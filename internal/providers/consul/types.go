@@ -2,6 +2,6 @@ package consul
 
 import capi "github.com/hashicorp/consul/api"
 
-type Consul struct {
+type ConsulClient struct {
 	client *capi.Client
 }
