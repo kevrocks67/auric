@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	capi "github.com/hashicorp/consul/api"
 )
 
 type Artifact struct {
@@ -21,14 +20,7 @@ func getGoldenArtifact(c *gin.Context) {
 	artifactType := c.Param("artifact_type")
 	artifactChannel := c.Param("artifact_channel")
 
-	client, err := capi.NewClient(capi.DefaultConfig())
-	if err != nil {
-		panic(err)
-	}
-
-	kv := client.KV()
-
-	pair, _, err := kv.Get(fmt.Sprintf("artifacts/golden/%s/%s", artifactType, artifactChannel), nil)
+	pair, err := GetConsulKVPair(fmt.Sprintf("artifacts/golden/%s/%s", artifactType, artifactChannel))
 	if err != nil {
 		panic(err)
 	}
@@ -50,22 +42,15 @@ func promoteGoldenArtifact(c *gin.Context) {
 	t := time.Now().UTC()
 	newGoldenArtifact.PromotionTimestamp = t.Format(time.RFC3339)
 
-	client, err := capi.NewClient(capi.DefaultConfig())
-	if err != nil {
-		panic(err)
-	}
-	kv := client.KV()
-
 	newGoldenArtifactJSON, err := json.Marshal(newGoldenArtifact)
 	if err != nil {
 		panic(err)
 	}
 
-	p := &capi.KVPair{
-		Key:   fmt.Sprintf("artifacts/golden/%s/%s", artifactType, artifactChannel),
-		Value: newGoldenArtifactJSON,
-	}
-	_, err = kv.Put(p, nil)
+	key := fmt.Sprintf("artifacts/golden/%s/%s", artifactType, artifactChannel)
+
+	//TODO make this an interface so that were not tied to consul
+	err = CreateConsulKVPair(key, newGoldenArtifactJSON)
 	if err != nil {
 		panic(err)
 	}
