@@ -19,6 +19,7 @@ type Artifact struct {
 func getGoldenArtifact(c *gin.Context) {
 	var goldenArtifact Artifact
 	artifactType := c.Param("artifact_type")
+	artifactChannel := c.Param("artifact_channel")
 
 	client, err := capi.NewClient(capi.DefaultConfig())
 	if err != nil {
@@ -27,7 +28,7 @@ func getGoldenArtifact(c *gin.Context) {
 
 	kv := client.KV()
 
-	pair, _, err := kv.Get(fmt.Sprintf("artifacts/golden/%s", artifactType), nil)
+	pair, _, err := kv.Get(fmt.Sprintf("artifacts/golden/%s/%s", artifactType, artifactChannel), nil)
 	if err != nil {
 		panic(err)
 	}
@@ -40,6 +41,7 @@ func getGoldenArtifact(c *gin.Context) {
 func promoteGoldenArtifact(c *gin.Context) {
 	var newGoldenArtifact Artifact
 	artifactType := c.Param("artifact_type")
+	artifactChannel := c.Param("artifact_channel")
 
 	if err := c.BindJSON(&newGoldenArtifact); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Bad Request"})
@@ -59,7 +61,10 @@ func promoteGoldenArtifact(c *gin.Context) {
 		panic(err)
 	}
 
-	p := &capi.KVPair{Key: fmt.Sprintf("artifacts/golden/%s", artifactType), Value: newGoldenArtifactJSON}
+	p := &capi.KVPair{
+		Key:   fmt.Sprintf("artifacts/golden/%s/%s", artifactType, artifactChannel),
+		Value: newGoldenArtifactJSON,
+	}
 	_, err = kv.Put(p, nil)
 	if err != nil {
 		panic(err)
@@ -70,8 +75,8 @@ func promoteGoldenArtifact(c *gin.Context) {
 
 func main() {
 	router := gin.Default()
-	router.GET("/golden/:artifact_type", getGoldenArtifact)
-	router.POST("/golden/:artifact_type", promoteGoldenArtifact)
+	router.GET("/golden/:artifact_type/:artifact_channel", getGoldenArtifact)
+	router.POST("/golden/:artifact_type/:artifact_channel", promoteGoldenArtifact)
 
 	router.Run("0.0.0.0:8080")
 }
