@@ -17,10 +17,11 @@ type Artifact struct {
 
 func getGoldenArtifact(c *gin.Context) {
 	var goldenArtifact Artifact
+	artifactName := c.Param("artifact_name")
 	artifactType := c.Param("artifact_type")
 	artifactChannel := c.Param("artifact_channel")
 
-	pair, err := GetConsulKVPair(fmt.Sprintf("artifacts/golden/%s/%s", artifactType, artifactChannel))
+	pair, err := GetConsulKVPair(fmt.Sprintf("artifacts/golden/%s/%s/%s", artifactType, artifactName, artifactChannel))
 	if err != nil {
 		panic(err)
 	}
@@ -32,6 +33,7 @@ func getGoldenArtifact(c *gin.Context) {
 
 func promoteGoldenArtifact(c *gin.Context) {
 	var newGoldenArtifact Artifact
+	artifactName := c.Param("artifact_name")
 	artifactType := c.Param("artifact_type")
 	artifactChannel := c.Param("artifact_channel")
 
@@ -47,7 +49,7 @@ func promoteGoldenArtifact(c *gin.Context) {
 		panic(err)
 	}
 
-	key := fmt.Sprintf("artifacts/golden/%s/%s", artifactType, artifactChannel)
+	key := fmt.Sprintf("artifacts/golden/%s/%s/%s", artifactType, artifactName, artifactChannel)
 
 	//TODO make this an interface so that were not tied to consul
 	err = CreateConsulKVPair(key, newGoldenArtifactJSON)
@@ -60,8 +62,8 @@ func promoteGoldenArtifact(c *gin.Context) {
 
 func main() {
 	router := gin.Default()
-	router.GET("/golden/:artifact_type/:artifact_channel", getGoldenArtifact)
-	router.POST("/golden/:artifact_type/:artifact_channel", promoteGoldenArtifact)
+	router.GET("/golden/:artifact_type/:artifact_name/:artifact_channel", getGoldenArtifact)
+	router.POST("/golden/:artifact_type/:artifact_name/:artifact_channel", promoteGoldenArtifact)
 
 	router.Run("0.0.0.0:8080")
 }
