@@ -27,6 +27,7 @@ func GetGoldenArtifact(c *gin.Context) {
 
 	c.IndentedJSON(http.StatusOK, goldenArtifact)
 }
+
 func PromoteGoldenArtifact(c *gin.Context) {
 	var newGoldenArtifact models.GoldenArtifact
 

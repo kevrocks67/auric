@@ -1,43 +1,41 @@
 package consul
 
 import (
+	"auric/internal/providers"
 	"fmt"
 	"os"
 
 	capi "github.com/hashicorp/consul/api"
 )
 
-var consul_address = "127.0.0.1:8500"
-var consul_datacenter = "dc1"
-
-func (c Consul) Init() error {
-	client, err := newConsulClient()
+func (c *ConsulClient) Init(config providers.ProviderConfig) error {
+	client, err := newConsulClient(config)
 	c.client = client
 	fmt.Println("Initializing consul client")
 	return err
 }
 
-func (c Consul) Store(path string, value []byte) error {
-	err := CreateConsulKVPair(path, value)
+func (c *ConsulClient) Store(path string, value []byte) error {
+	err := CreateConsulKVPair(c, path, value)
 	return err
 }
 
-func (c Consul) Retrieve(path string) ([]byte, error) {
-	pair, err := GetConsulKVPair(path)
+func (c *ConsulClient) Retrieve(path string) ([]byte, error) {
+	pair, err := GetConsulKVPair(c, path)
 	return pair.Value, err
 }
 
-func (c Consul) Delete(path string) error {
+func (c *ConsulClient) Delete(path string) error {
 	return nil
 }
 
-func newConsulClient() (*capi.Client, error) {
+func newConsulClient(config providers.ProviderConfig) (*capi.Client, error) {
 	token := os.Getenv("CONSUL_HTTP_TOKEN")
 
 	client, err := capi.NewClient(&capi.Config{
-		Address:    consul_address,
+		Address:    fmt.Sprintf("%s:%s", config.ConsulConfig.Address, config.ConsulConfig.Port),
 		Scheme:     "http",
-		Datacenter: consul_datacenter,
+		Datacenter: config.ConsulConfig.Datacenter,
 		Token:      token,
 	})
 	if err != nil {
@@ -46,29 +44,20 @@ func newConsulClient() (*capi.Client, error) {
 	return client, err
 }
 
-func CreateConsulKVPair(key string, value []byte) error {
-	consul_client, err := newConsulClient()
-	if err != nil {
-		panic(err)
-	}
-
-	kv := consul_client.KV()
+func CreateConsulKVPair(c *ConsulClient, key string, value []byte) error {
+	kv := c.client.KV()
 
 	pair := &capi.KVPair{
 		Key:   key,
 		Value: value,
 	}
-	_, err = kv.Put(pair, nil)
+
+	_, err := kv.Put(pair, nil)
 	return err
 }
 
-func GetConsulKVPair(key string) (*capi.KVPair, error) {
-	consul_client, err := newConsulClient()
-	if err != nil {
-		panic(err)
-	}
-
-	kv := consul_client.KV()
+func GetConsulKVPair(c *ConsulClient, key string) (*capi.KVPair, error) {
+	kv := c.client.KV()
 	pair, _, err := kv.Get(key, nil)
 
 	return pair, err
