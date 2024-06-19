@@ -1,6 +1,7 @@
 package consul
 
 import (
+	"fmt"
 	"os"
 
 	capi "github.com/hashicorp/consul/api"
@@ -8,6 +9,27 @@ import (
 
 var consul_address = "127.0.0.1:8500"
 var consul_datacenter = "dc1"
+
+func (c Consul) Init() error {
+	client, err := newConsulClient()
+	c.client = client
+	fmt.Println("Initializing consul client")
+	return err
+}
+
+func (c Consul) Store(path string, value []byte) error {
+	err := CreateConsulKVPair(path, value)
+	return err
+}
+
+func (c Consul) Retrieve(path string) ([]byte, error) {
+	pair, err := GetConsulKVPair(path)
+	return pair.Value, err
+}
+
+func (c Consul) Delete(path string) error {
+	return nil
+}
 
 func newConsulClient() (*capi.Client, error) {
 	token := os.Getenv("CONSUL_HTTP_TOKEN")
@@ -21,7 +43,6 @@ func newConsulClient() (*capi.Client, error) {
 	if err != nil {
 		panic(err)
 	}
-
 	return client, err
 }
 
