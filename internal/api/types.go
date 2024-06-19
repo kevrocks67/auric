@@ -1,4 +1,4 @@
-package main
+package api
 
 type Artifact struct {
 	ArtifactUri       string   `json:"artifact_uri"`

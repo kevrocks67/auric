@@ -1,4 +1,4 @@
-package main
+package api
 
 const (
 	artifactCatalogUri string = "artifacts/catalog"

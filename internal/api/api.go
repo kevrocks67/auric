@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"encoding/json"
@@ -7,16 +7,18 @@ import (
 	"strings"
 	"time"
 
+	ac "auric/internal/consul"
+
 	"github.com/gin-gonic/gin"
 )
 
-func getGoldenArtifact(c *gin.Context) {
+func GetGoldenArtifact(c *gin.Context) {
 	var goldenArtifact GoldenArtifact
 	artifactName := c.Param("artifact_name")
 	artifactType := c.Param("artifact_type")
 	artifactChannel := c.Param("artifact_channel")
 
-	pair, err := GetConsulKVPair(fmt.Sprintf("artifacts/golden/%s/%s/%s", artifactType, artifactName, artifactChannel))
+	pair, err := ac.GetConsulKVPair(fmt.Sprintf("artifacts/golden/%s/%s/%s", artifactType, artifactName, artifactChannel))
 	if err != nil {
 		panic(err)
 	}
@@ -26,7 +28,7 @@ func getGoldenArtifact(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, goldenArtifact)
 }
 
-func promoteGoldenArtifact(c *gin.Context) {
+func PromoteGoldenArtifact(c *gin.Context) {
 	var newGoldenArtifact GoldenArtifact
 
 	if err := c.BindJSON(&newGoldenArtifact); err != nil {
@@ -47,7 +49,7 @@ func promoteGoldenArtifact(c *gin.Context) {
 	}
 
 	//TODO make this an interface so that were not tied to consul
-	err = CreateConsulKVPair(key, newGoldenArtifactJSON)
+	err = ac.CreateConsulKVPair(key, newGoldenArtifactJSON)
 	if err != nil {
 		panic(err)
 	}
@@ -63,7 +65,7 @@ func extractTypeFromUri(uri string) string {
 	return strings.Split(uri, "/")[2]
 }
 
-func createArtifact(c *gin.Context) {
+func CreateArtifact(c *gin.Context) {
 	var newArtifact Artifact
 
 	if err := c.BindJSON(&newArtifact); err != nil {
@@ -80,7 +82,7 @@ func createArtifact(c *gin.Context) {
 	}
 
 	//TODO make this an interface so that were not tied to consul
-	err = CreateConsulKVPair(newArtifact.ArtifactUri, newArtifactJSON)
+	err = ac.CreateConsulKVPair(newArtifact.ArtifactUri, newArtifactJSON)
 	if err != nil {
 		panic(err)
 	}
@@ -89,11 +91,17 @@ func createArtifact(c *gin.Context) {
 
 }
 
-func main() {
-	router := gin.Default()
-	router.GET("/golden/:artifact_type/:artifact_name/:artifact_channel", getGoldenArtifact)
-	router.POST("/golden", promoteGoldenArtifact)
-	router.POST("/catalog", createArtifact)
+func Serve(args ...string) {
+	addr := "0.0.0.0:8080"
 
-	router.Run("0.0.0.0:8080")
+	if len(args) > 1 {
+		addr = args[1]
+	}
+
+	router := gin.Default()
+	router.GET("/golden/:artifact_type/:artifact_name/:artifact_channel", GetGoldenArtifact)
+	router.POST("/golden", PromoteGoldenArtifact)
+	router.POST("/catalog", CreateArtifact)
+
+	router.Run(addr)
 }
