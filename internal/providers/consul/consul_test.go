@@ -12,16 +12,16 @@ import (
 	"gotest.tools/v3/assert"
 )
 
-var Client ConsulClient
+var CClient ConsulClient
 
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 	consul, config := initConsul(ctx)
-	client, err := newConsulClient(config)
+	client, err := NewConsulClient(config)
 	if err != nil {
 		panic(err)
 	}
-	Client.client = client
+	CClient.Client = client
 
 	defer consul.Terminate(ctx)
 
@@ -87,12 +87,12 @@ func initConsul(ctx context.Context) (testcontainers.Container, providers.Provid
 }
 
 func TestCreateConsulKVPair(t *testing.T) {
-	err := CreateConsulKVPair(&Client, "testKey", []byte("something"))
+	err := CreateConsulKVPair(&CClient, "testKey", []byte("something"))
 	assert.Equal(t, err, nil)
 }
 
 func TestGetConsulKVPair(t *testing.T) {
-	pair, err := GetConsulKVPair(&Client, "testKey")
+	pair, err := GetConsulKVPair(&CClient, "testKey")
 	assert.Equal(t, string(pair.Value), "something")
 	assert.Equal(t, err, nil)
 }
