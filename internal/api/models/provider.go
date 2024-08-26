@@ -19,17 +19,4 @@ func InitProvider(providerType string, config *providers.ProviderConfig) {
 		}
 		Provider = p
 	}
-
-	/*
-		if providerType == "test" {
-			p := &test.TestClient{}
-
-			//TODO read from json file
-			err := p.Init(*config)
-
-			if err != nil {
-				panic(err)
-			}
-			Provider = p
-		}*/
 }
