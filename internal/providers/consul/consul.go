@@ -2,6 +2,7 @@ package consul
 
 import (
 	"auric/internal/providers"
+	"errors"
 	"fmt"
 	"os"
 
@@ -9,8 +10,8 @@ import (
 )
 
 func (c *ConsulClient) Init(config providers.ProviderConfig) error {
-	client, err := newConsulClient(config)
-	c.client = client
+	client, err := NewConsulClient(config)
+	c.Client = client
 	fmt.Println("Initializing consul client")
 	return err
 }
@@ -22,14 +23,20 @@ func (c *ConsulClient) Store(path string, value []byte) error {
 
 func (c *ConsulClient) Retrieve(path string) ([]byte, error) {
 	pair, err := GetConsulKVPair(c, path)
-	return pair.Value, err
+	if err != nil {
+		return nil, err
+	}
+	if pair == nil {
+		return nil, errors.New(fmt.Sprintf("No key pair found for path: %s", path))
+	}
+	return pair.Value, nil
 }
 
 func (c *ConsulClient) Delete(path string) error {
 	return nil
 }
 
-func newConsulClient(config providers.ProviderConfig) (*capi.Client, error) {
+func NewConsulClient(config providers.ProviderConfig) (*capi.Client, error) {
 	token := os.Getenv("CONSUL_HTTP_TOKEN")
 
 	client, err := capi.NewClient(&capi.Config{
@@ -45,7 +52,7 @@ func newConsulClient(config providers.ProviderConfig) (*capi.Client, error) {
 }
 
 func CreateConsulKVPair(c *ConsulClient, key string, value []byte) error {
-	kv := c.client.KV()
+	kv := c.Client.KV()
 
 	pair := &capi.KVPair{
 		Key:   key,
@@ -57,7 +64,7 @@ func CreateConsulKVPair(c *ConsulClient, key string, value []byte) error {
 }
 
 func GetConsulKVPair(c *ConsulClient, key string) (*capi.KVPair, error) {
-	kv := c.client.KV()
+	kv := c.Client.KV()
 	pair, _, err := kv.Get(key, nil)
 
 	return pair, err

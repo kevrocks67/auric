@@ -14,6 +14,8 @@ func Serve(args ...string) {
 
 	if len(args) > 1 {
 		addr = args[1]
+		//TODO implement config file getting loaded and determine provider
+		// configFile = args[2]
 	}
 
 	config := providers.ProviderConfig{
