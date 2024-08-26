@@ -118,6 +118,7 @@ func TestPromoteGoldenArtifact(t *testing.T) {
 	}
 
 	req, err := http.NewRequest("POST", "/golden", strings.NewReader(string(testArtifactJson)))
+
 	if err != nil {
 		t.Fatal(err)
 	}
