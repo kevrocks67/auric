@@ -38,7 +38,7 @@ func startConsulContainer() (testcontainers.Container, error) {
 	ctx := context.Background()
 	req := testcontainers.ContainerRequest{
 		Image:        "consul:1.15",
-		Name:         "consul-auric-test",
+		Name:         "consul-auric-provider-test",
 		ExposedPorts: []string{"8500/tcp"},
 		Cmd:          []string{"agent", "-dev", "-client", "0.0.0.0"},
 		WaitingFor:   wait.NewHTTPStrategy("/v1/status/leader"),

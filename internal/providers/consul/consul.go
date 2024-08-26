@@ -2,6 +2,7 @@ package consul
 
 import (
 	"auric/internal/providers"
+	"errors"
 	"fmt"
 	"os"
 
@@ -22,7 +23,13 @@ func (c *ConsulClient) Store(path string, value []byte) error {
 
 func (c *ConsulClient) Retrieve(path string) ([]byte, error) {
 	pair, err := GetConsulKVPair(c, path)
-	return pair.Value, err
+	if err != nil {
+		return nil, err
+	}
+	if pair == nil {
+		return nil, errors.New(fmt.Sprintf("No key pair found for path: %s", path))
+	}
+	return pair.Value, nil
 }
 
 func (c *ConsulClient) Delete(path string) error {
