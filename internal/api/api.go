@@ -4,6 +4,7 @@ import (
 	"auric/internal/api/catalog"
 	"auric/internal/api/golden"
 	"auric/internal/api/models"
+	"auric/internal/providers"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,7 +16,19 @@ func Serve(args ...string) {
 		addr = args[1]
 	}
 
-	models.InitProvider("consul")
+	config := providers.ProviderConfig{
+		ConsulConfig: struct {
+			Address    string `json:"address"`
+			Port       string `json:"port"`
+			Datacenter string `json:"datacenter"`
+		}{
+			Address:    "127.0.0.1",
+			Port:       "8500",
+			Datacenter: "dc1",
+		},
+	}
+
+	models.InitProvider("consul", &config)
 
 	router := gin.Default()
 	router.GET("/golden/:artifact_type/:artifact_name/:artifact_channel", golden.GetGoldenArtifact)

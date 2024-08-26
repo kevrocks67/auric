@@ -12,6 +12,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+/* GetGoldenArtifact returns a GoldenArtifact object
+*  It gets the data based on parameters in the URI
+*  An example URI for an artifact named rocky9-base
+*  of type qcow2 in prod would be obtained by making
+*  a GET request to /golden/qcow2/rocky9-base/prod
+ */
 func GetGoldenArtifact(c *gin.Context) {
 	var goldenArtifact models.GoldenArtifact
 	artifactName := c.Param("artifact_name")
@@ -38,8 +44,8 @@ func PromoteGoldenArtifact(c *gin.Context) {
 	t := time.Now().UTC()
 	newGoldenArtifact.PromotionTimestamp = t.Format(time.RFC3339)
 
-	artifactType := util.ExtractTypeFromUri(newGoldenArtifact.ArtifactUri)
-	artifactName := util.ExtractNameFromUri(newGoldenArtifact.ArtifactUri)
+	artifactType := util.ExtractTypeFromGoldenUri(newGoldenArtifact.ArtifactUri)
+	artifactName := util.ExtractNameFromGoldenUri(newGoldenArtifact.ArtifactUri)
 
 	key := fmt.Sprintf("%s/%s/%s/%s", constants.GoldenArtifactsUri, artifactType, artifactName, newGoldenArtifact.Channel)
 

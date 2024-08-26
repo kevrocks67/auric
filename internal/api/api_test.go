@@ -1,6 +1,8 @@
 package api
 
 import (
+	"auric/internal/api/golden"
+	"auric/internal/api/models"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -74,13 +76,14 @@ func initConsul(ctx context.Context) (testcontainers.Container, string) {
 
 func TestPromoteGoldenArtifact(t *testing.T) {
 	router := setupRouter()
-	router.POST("/artifacts/golden/:artifact_type/:artifact_channel", promoteGoldenArtifact)
+	router.POST("/artifacts/golden/:artifact_type/:artifact_channel", golden.PromoteGoldenArtifact)
 
 	w := httptest.NewRecorder()
 
-	testArtifact := Artifact{
-		ArtifactType: "test",
-		ArtifactID:   "1234",
+	testArtifact := models.Artifact{
+		ArtifactType: "qcow2",
+		ArtifactName: "rocky9-base",
+		ArtifactId:   "1",
 	}
 
 	testArtifactJson, err := json.Marshal(testArtifact)
@@ -88,7 +91,35 @@ func TestPromoteGoldenArtifact(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	req, err := http.NewRequest("POST", "/artifacts/golden/test/prod", strings.NewReader(string(testArtifactJson)))
+	req, err := http.NewRequest("POST", "/artifacts/golden", strings.NewReader(string(testArtifactJson)))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 201, w.Code)
+}
+
+func TestGetGoldenArtifact(t *testing.T) {
+	router := setupRouter()
+	router.GET("/artifacts/golden/qcow2/rocky9-base/prod", golden.GetGoldenArtifact)
+
+	w := httptest.NewRecorder()
+
+	testArtifact := models.GoldenArtifact{
+		ArtifactUri:        "artifacts/catalog/qcow2/rocky9-base/1",
+		Channel:            "prod",
+		PromotionTimestamp: "2024-06-19T19:14:58Z",
+		PromotedBy:         "testUser",
+	}
+
+	testArtifactJson, err := json.Marshal(testArtifact)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req, err := http.NewRequest("POST", "/artifacts/golden/qcow2/rocky9-base/prod", strings.NewReader(string(testArtifactJson)))
 	if err != nil {
 		t.Fatal(err)
 	}
