@@ -1,0 +1,12 @@
+|  Type  |                          Endpoint                          | Status |                                    Request                                   |                  Response                 |
+|:------:|:----------------------------------------------------------:|:------:|:----------------------------------------------------------------------------:|:-----------------------------------------:|
+|   GET  |                         /v1/catalog                        |   200  |                                     null                                     | { "artifacts": [ type Artifact struct ] } |
+|  POST  |                         /v1/catalog                        |   201  | { "ArtifactName": "", "ArtifactType": "", "ArtifactId": "", "ParentId": "" } |            type Artifact struct           |
+|   GET  |                 /v1/catalog/<ArtifactGUID>                 |   200  |                                     null                                     |          { type Artifact struct }         |
+| DELETE |                 /v1/catalog/<ArtifactGUID>                 |   200  |                                     null                                     |             { "result": True }            |
+|   PUT  |                 /v1/catalog/<ArtifactGUID>                 |   200  | { "ArtifactName": "", "ArtifactType": "", "ArtifactId": "", "ParentId": "" } |            type Artifact struct           |
+|   GET  | /v1/golden/<ArtifactType>/<ArtifactName>/<ArtifactChannel> |   200  |                                     null                                     |         type GoldenArtifact struct        |
+|   PUT  |                         /v1/golden                         |   200  |                     { "ArtifactGUID": "", "Channel": "" }                    |         type GoldenArtifact struct        |
+| DELETE | /v1/golden/<ArtifactType>/<ArtifactName>/<ArtifactChannel> |   200  |                                     null                                     |             { "result": True }            |
+| DELETE |          /v1/golden/<ArtifactType>/<ArtifactName>          |   200  |                                     null                                     |             { "result": True }            |
+| DELETE |                  /v1/golden/<ArtifactType>                 |   200  |                                     null                                     |             { "result": True }            |
