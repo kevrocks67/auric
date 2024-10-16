@@ -1,6 +1,7 @@
 package models
 
 type Artifact struct {
+	ArtifactGUID      string   `json:"artifact_guid"`
 	ArtifactUri       string   `json:"artifact_uri"`
 	ArtifactType      string   `json:"artifact_type"`
 	ArtifactName      string   `json:"artifact_name"`
