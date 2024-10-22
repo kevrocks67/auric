@@ -48,3 +48,20 @@ func CreateArtifact(c *gin.Context) {
 	// Return generated object as JSON
 	c.IndentedJSON(http.StatusCreated, newArtifact)
 }
+
+func GetCatalog(c *gin.Context) {
+	var artifacts []models.Artifact
+
+	pairs, err := models.Provider.List("artifacts/catalog")
+	if err != nil {
+		panic(err)
+	}
+
+	for _, pair := range pairs {
+		var artifact models.Artifact
+		json.Unmarshal(pair, &artifact)
+		artifacts = append(artifacts, artifact)
+	}
+
+	c.IndentedJSON(http.StatusOK, artifacts)
+}

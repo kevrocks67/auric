@@ -36,6 +36,14 @@ func (c *ConsulClient) Delete(path string) error {
 	return nil
 }
 
+func (c *ConsulClient) List(prefix string) ([][]byte, error) {
+	pairs, err := ListConsulKVPath(c, prefix)
+	if err != nil {
+		return nil, err
+	}
+	return pairs, nil
+}
+
 func NewConsulClient(config providers.ProviderConfig) (*capi.Client, error) {
 	token := os.Getenv("CONSUL_HTTP_TOKEN")
 
@@ -68,4 +76,13 @@ func GetConsulKVPair(c *ConsulClient, key string) (*capi.KVPair, error) {
 	pair, _, err := kv.Get(key, nil)
 
 	return pair, err
+}
+
+func ListConsulKVPath(c *ConsulClient, prefix string) ([][]byte, error) {
+	pairs, _, err := c.Client.KV().List(prefix, nil)
+	var pairList [][]byte
+	for _, pair := range pairs {
+		pairList = append(pairList, pair.Value)
+	}
+	return pairList, err
 }

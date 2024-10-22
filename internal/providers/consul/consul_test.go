@@ -46,9 +46,8 @@ func startConsulContainer() (testcontainers.Container, error) {
 
 	container, err := testcontainers.GenericContainer(
 		ctx,
-		testcontainers.GenericContainerRequest{
-			ContainerRequest: req,
-			Started:          true,
+		testcontainers.GenericContainerRequest{ContainerRequest: req,
+			Started: true,
 		},
 	)
 
@@ -94,5 +93,11 @@ func TestCreateConsulKVPair(t *testing.T) {
 func TestGetConsulKVPair(t *testing.T) {
 	pair, err := GetConsulKVPair(&CClient, "testKey")
 	assert.Equal(t, string(pair.Value), "something")
+	assert.Equal(t, err, nil)
+}
+
+func TestListConsulKVPath(t *testing.T) {
+	pairs, err := ListConsulKVPath(&CClient, "")
+	assert.Check(t, len(pairs) > 0)
 	assert.Equal(t, err, nil)
 }

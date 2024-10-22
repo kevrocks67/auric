@@ -5,6 +5,7 @@ type AuricProvider interface {
 	Store(path string, value []byte) error
 	Retrieve(path string) ([]byte, error)
 	Delete(path string) error
+	List(prefix string) ([][]byte, error)
 }
 
 type ProviderConfig struct {
