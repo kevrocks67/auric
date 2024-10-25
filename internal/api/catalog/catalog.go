@@ -31,7 +31,11 @@ func CreateArtifact(c *gin.Context) {
 
 	// Populate server-side parameters
 	newArtifact.ArtifactGUID = artifactUuid.String()
-	newArtifact.ArtifactUri = fmt.Sprintf("%s/%s/%s/%s", constants.ArtifactCatalogUri, newArtifact.ArtifactType, newArtifact.ArtifactName, newArtifact.ArtifactId)
+	newArtifact.ArtifactUri = fmt.Sprintf("%s/%s/%s",
+		constants.ArtifactCatalogUri,
+		newArtifact.ArtifactType,
+		newArtifact.ArtifactGUID,
+	)
 	newArtifact.CreationTimestamp = t.Format(time.RFC3339)
 
 	// Marshal object and store in backend
@@ -40,7 +44,13 @@ func CreateArtifact(c *gin.Context) {
 		panic(err)
 	}
 
-	err = models.Provider.Store(newArtifact.ArtifactUri, newArtifactJSON)
+	err = models.Provider.Store(
+		fmt.Sprintf("%s/%s/%s",
+			constants.ArtifactCatalogUri,
+			newArtifact.ArtifactType,
+			newArtifact.ArtifactGUID,
+		), newArtifactJSON,
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -64,4 +74,26 @@ func GetCatalog(c *gin.Context) {
 	}
 
 	c.IndentedJSON(http.StatusOK, artifacts)
+}
+
+func GetArtifact(c *gin.Context) {
+	var artifact models.Artifact
+
+	artifactType := c.Param("artifact_type")
+	artifactGUID := c.Param("artifact_guid")
+
+	value, err := models.Provider.Retrieve(
+		fmt.Sprintf("%s/%s/%s",
+			constants.ArtifactCatalogUri,
+			artifactType,
+			artifactGUID,
+		),
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
+	json.Unmarshal(value, &artifact)
+	c.IndentedJSON(http.StatusOK, artifact)
 }

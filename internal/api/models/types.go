@@ -5,7 +5,7 @@ type Artifact struct {
 	ArtifactUri       string   `json:"artifact_uri"`
 	ArtifactType      string   `json:"artifact_type"`
 	ArtifactName      string   `json:"artifact_name"`
-	ArtifactId        string   `json:"artifact_id"`
+	ArtifactVersion   string   `json:"artifact_version"`
 	CreationTimestamp string   `json:"creation_timestamp"`
 	UploadedBy        string   `json:"uploaded_by"`
 	HasChildren       bool     `json:"has_children"`

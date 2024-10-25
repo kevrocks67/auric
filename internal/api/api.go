@@ -37,6 +37,7 @@ func Serve(args ...string) {
 	router.POST("/golden", golden.PromoteGoldenArtifact)
 	router.GET("/catalog", catalog.GetCatalog)
 	router.POST("/catalog", catalog.CreateArtifact)
+	router.GET("/catalog/:artifact_type/:artifact_guid", catalog.GetArtifact)
 
 	router.Run(addr)
 }
