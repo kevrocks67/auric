@@ -61,3 +61,7 @@ func PromoteGoldenArtifact(c *gin.Context) {
 
 	c.IndentedJSON(http.StatusCreated, newGoldenArtifact)
 }
+
+func DeleteGoldenPath(c *gin.Context) {
+	c.IndentedJSON(http.StatusNotImplemented, nil)
+}

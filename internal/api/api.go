@@ -33,11 +33,20 @@ func Serve(args ...string) {
 	models.InitProvider("consul", &config)
 
 	router := gin.Default()
-	router.GET("/golden/:artifact_type/:artifact_name/:artifact_channel", golden.GetGoldenArtifact)
-	router.POST("/golden", golden.PromoteGoldenArtifact)
+
+	// Catalog API
 	router.GET("/catalog", catalog.GetCatalog)
 	router.POST("/catalog", catalog.CreateArtifact)
 	router.GET("/catalog/:artifact_type/:artifact_guid", catalog.GetArtifact)
+	router.PUT("/catalog/:artifact_type/:artifact_guid", catalog.UpdateArtifact)
+	router.DELETE("/catalog/:artifact_type/:artifact_guid", catalog.DeleteArtifact)
+
+	// Golden API
+	router.GET("/golden/:artifact_type/:artifact_name/:artifact_channel", golden.GetGoldenArtifact)
+	router.PUT("/golden", golden.PromoteGoldenArtifact)
+	router.DELETE("/golden/:artifact_type", golden.DeleteGoldenPath)
+	router.DELETE("/golden/:artifact_type/:artifact_name", golden.DeleteGoldenPath)
+	router.DELETE("/golden/:artifact_type/:artifact_name/:artifact_channel", golden.DeleteGoldenPath)
 
 	router.Run(addr)
 }

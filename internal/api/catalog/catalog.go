@@ -97,3 +97,11 @@ func GetArtifact(c *gin.Context) {
 	json.Unmarshal(value, &artifact)
 	c.IndentedJSON(http.StatusOK, artifact)
 }
+
+func UpdateArtifact(c *gin.Context) {
+	c.IndentedJSON(http.StatusNotImplemented, nil)
+}
+
+func DeleteArtifact(c *gin.Context) {
+	c.IndentedJSON(http.StatusNotImplemented, nil)
+}

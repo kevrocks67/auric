@@ -4,7 +4,7 @@
 |  POST  |                         /v1/catalog                               |   201  | { "ArtifactName": "", "ArtifactType": "", "ArtifactVersion": "", "ParentId": "" } |            type Artifact struct           |
 |   GET  |                 /v1/catalog/\<ArtifactType\>/\<ArtifactGUID\>                      |   200  |                                     null                                     |          { type Artifact struct }         |
 | DELETE |                 /v1/catalog/\<ArtifactType\>/\<ArtifactGUID\>                      |   200  |                                     null                                     |             { "result": True }            |
-|   PUT  |                 /v1/catalog/\<ArtifactType\>/\<ArtifactGUID\>                      |   200  | { "ArtifactName": "", "ArtifactType": "", "ArtifactVersion": "", "ParentId": "" } |            type Artifact struct           |
+|   PUT  |                 /v1/catalog/\<ArtifactType\>/\<ArtifactGUID\>                      |   201  | { "ArtifactName": "", "ArtifactType": "", "ArtifactVersion": "", "ParentId": "" } |            type Artifact struct           |
 |   GET  | /v1/golden/\<ArtifactType>/\<ArtifactName\>/\<ArtifactChannel\>   |   200  |                                     null                                      |         type GoldenArtifact struct        |
 |   PUT  |                         /v1/golden                                |   200  |                     { "ArtifactType": "", "ArtifactGUID": "", "Channel": "" } |         type GoldenArtifact struct        |
 | DELETE | /v1/golden/\<ArtifactType\>/\<ArtifactName\>/\<ArtifactChannel\>  |   200  |                                     null                                      |             { "result": True }            |
