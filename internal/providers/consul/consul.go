@@ -32,8 +32,15 @@ func (c *ConsulClient) Retrieve(path string) ([]byte, error) {
 	return pair.Value, nil
 }
 
-func (c *ConsulClient) Delete(path string) error {
-	return nil
+func (c *ConsulClient) Delete(path string, isPrefix bool) error {
+	var err error
+
+	if isPrefix {
+		err = DeleteConsulKVPath(c, path)
+	} else {
+		err = DeleteConsulKVPair(c, path)
+	}
+	return err
 }
 
 func (c *ConsulClient) List(prefix string) ([][]byte, error) {
@@ -85,4 +92,18 @@ func ListConsulKVPath(c *ConsulClient, prefix string) ([][]byte, error) {
 		pairList = append(pairList, pair.Value)
 	}
 	return pairList, err
+}
+
+func DeleteConsulKVPair(c *ConsulClient, path string) error {
+	kv := c.Client.KV()
+
+	_, err := kv.Delete(path, nil)
+	return err
+}
+
+func DeleteConsulKVPath(c *ConsulClient, prefix string) error {
+	kv := c.Client.KV()
+
+	_, err := kv.DeleteTree(prefix, nil)
+	return err
 }

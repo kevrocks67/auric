@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -63,5 +64,26 @@ func PromoteGoldenArtifact(c *gin.Context) {
 }
 
 func DeleteGoldenPath(c *gin.Context) {
-	c.IndentedJSON(http.StatusNotImplemented, nil)
+	artifactType := c.Param("artifact_type")
+	artifactName := c.Param("artifact_name")
+	artifactChannel := c.Param("artifact_channel")
+
+	pathToDeleteRaw := fmt.Sprintf("%s/%s/%s/%s",
+		constants.GoldenArtifactsUri,
+		artifactType,
+		artifactName,
+		artifactChannel,
+	)
+	pathToDelete := strings.TrimRight(pathToDeleteRaw, "/")
+
+	err := models.Provider.Delete(
+		pathToDelete,
+		true,
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{"result": true})
 }

@@ -4,7 +4,7 @@ type AuricProvider interface {
 	Init(config ProviderConfig) error
 	Store(path string, value []byte) error
 	Retrieve(path string) ([]byte, error)
-	Delete(path string) error
+	Delete(path string, isPrefix bool) error
 	List(prefix string) ([][]byte, error)
 }
 

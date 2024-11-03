@@ -103,5 +103,21 @@ func UpdateArtifact(c *gin.Context) {
 }
 
 func DeleteArtifact(c *gin.Context) {
-	c.IndentedJSON(http.StatusNotImplemented, nil)
+	artifactType := c.Param("artifact_type")
+	artifactGUID := c.Param("artifact_guid")
+
+	err := models.Provider.Delete(
+		fmt.Sprintf("%s/%s/%s",
+			constants.ArtifactCatalogUri,
+			artifactType,
+			artifactGUID,
+		),
+		true,
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{"result": true})
 }
