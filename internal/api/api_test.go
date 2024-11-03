@@ -17,6 +17,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
@@ -44,9 +45,20 @@ func TestMain(m *testing.M) {
 func setupRouter() *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	router := gin.Default()
-	router.GET("/golden/:artifact_type/:artifact_name/:artifact_channel", golden.GetGoldenArtifact)
-	router.POST("/golden", golden.PromoteGoldenArtifact)
+
+	// Catalog API
+	router.GET("/catalog", catalog.GetCatalog)
 	router.POST("/catalog", catalog.CreateArtifact)
+	router.GET("/catalog/:artifact_type/:artifact_guid", catalog.GetArtifact)
+	router.PUT("/catalog/:artifact_type/:artifact_guid", catalog.UpdateArtifact)
+	router.DELETE("/catalog/:artifact_type/:artifact_guid", catalog.DeleteArtifact)
+
+	// Golden API
+	router.GET("/golden/:artifact_type/:artifact_name/:artifact_channel", golden.GetGoldenArtifact)
+	router.PUT("/golden", golden.PromoteGoldenArtifact)
+	router.DELETE("/golden/:artifact_type", golden.DeleteGoldenPath)
+	router.DELETE("/golden/:artifact_type/:artifact_name", golden.DeleteGoldenPath)
+	router.DELETE("/golden/:artifact_type/:artifact_name/:artifact_channel", golden.DeleteGoldenPath)
 	return router
 }
 
@@ -117,7 +129,7 @@ func TestPromoteGoldenArtifact(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	req, err := http.NewRequest("POST", "/golden", strings.NewReader(string(testArtifactJson)))
+	req, err := http.NewRequest("PUT", "/golden", strings.NewReader(string(testArtifactJson)))
 
 	if err != nil {
 		t.Fatal(err)
@@ -133,6 +145,7 @@ func TestPromoteGoldenArtifact(t *testing.T) {
 }
 
 func TestGetGoldenArtifact(t *testing.T) {
+	// Publish test data
 	w := httptest.NewRecorder()
 
 	testArtifact := models.GoldenArtifact{
@@ -147,7 +160,16 @@ func TestGetGoldenArtifact(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	req, err := http.NewRequest("GET", "/golden/qcow2/rocky9-base/prod", strings.NewReader(string(testArtifactJson)))
+	req, err := http.NewRequest("PUT", "/golden", strings.NewReader(string(testArtifactJson)))
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	GinRouter.ServeHTTP(w, req)
+
+	// Test getting golden artifact
+	w = httptest.NewRecorder()
+	req, err = http.NewRequest("GET", "/golden/qcow2/rocky9-base/prod", strings.NewReader(string(testArtifactJson)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -162,4 +184,50 @@ func TestGetGoldenArtifact(t *testing.T) {
 	assert.Equal(t, testArtifact.ArtifactUri, resp.ArtifactUri)
 	assert.Equal(t, testArtifact.Channel, resp.Channel)
 	assert.Equal(t, testArtifact.PromotedBy, resp.PromotedBy)
+}
+
+func TestDeleteGoldenArtifact(t *testing.T) {
+	testCases := []string{
+		"/golden/qcow2",
+		"/golden/qcow2/rocky9-base",
+		"/golden/qcow2/rocky9-base/prod",
+	}
+
+	testArtifact := models.GoldenArtifact{
+		ArtifactUri:        "/catalog/qcow2/rocky9-base/1",
+		Channel:            "prod",
+		PromotionTimestamp: "2024-06-19T19:14:58Z",
+		PromotedBy:         "testUser",
+	}
+
+	testArtifactJson, err := json.Marshal(testArtifact)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc, func(t *testing.T) {
+			// Publish test data
+			w := httptest.NewRecorder()
+			req, err := http.NewRequest("PUT", "/golden", strings.NewReader(string(testArtifactJson)))
+
+			if err != nil {
+				t.Fatal(err)
+			}
+			GinRouter.ServeHTTP(w, req)
+
+			// Test delete function
+			w = httptest.NewRecorder()
+			req, err = http.NewRequest("DELETE", tc, nil)
+
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			GinRouter.ServeHTTP(w, req)
+
+			assert.Equal(t, 200, w.Code)
+			require.JSONEq(t, `{"result": true}`, w.Body.String())
+		})
+	}
 }
