@@ -50,7 +50,7 @@ func setupRouter() *gin.Engine {
 	router.GET("/catalog", catalog.GetCatalog)
 	router.POST("/catalog", catalog.CreateArtifact)
 	router.GET("/catalog/:artifact_type/:artifact_guid", catalog.GetArtifact)
-	router.PUT("/catalog/:artifact_type/:artifact_guid", catalog.UpdateArtifact)
+	router.PATCH("/catalog/:artifact_type/:artifact_guid", catalog.UpdateArtifact)
 	router.DELETE("/catalog/:artifact_type/:artifact_guid", catalog.DeleteArtifact)
 
 	// Golden API

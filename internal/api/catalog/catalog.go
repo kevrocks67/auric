@@ -98,8 +98,88 @@ func GetArtifact(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, artifact)
 }
 
+func patchArtifactFunc(oldArtifact models.Artifact, patchArtifact models.ArtifactPatch) models.Artifact {
+	newArtifact := oldArtifact
+
+	if patchArtifact.ArtifactType != "" {
+		if patchArtifact.ArtifactType != oldArtifact.ArtifactType {
+			newArtifact.ArtifactType = patchArtifact.ArtifactType
+
+			newArtifact.ArtifactUri = fmt.Sprintf("%s/%s/%s",
+				constants.ArtifactCatalogUri,
+				newArtifact.ArtifactType,
+				newArtifact.ArtifactGUID,
+			)
+		}
+	}
+
+	if patchArtifact.ArtifactName != "" {
+		newArtifact.ArtifactName = patchArtifact.ArtifactName
+	}
+
+	if patchArtifact.ArtifactVersion != "" {
+		newArtifact.ArtifactVersion = patchArtifact.ArtifactVersion
+	}
+
+	if patchArtifact.ArtifactVersion != "" {
+		newArtifact.ArtifactVersion = patchArtifact.ArtifactVersion
+	}
+
+	// Generate server-side parameters
+	t := time.Now().UTC()
+
+	newArtifact.LastUpdated = t.Format(time.RFC3339)
+
+	return newArtifact
+}
+
 func UpdateArtifact(c *gin.Context) {
-	c.IndentedJSON(http.StatusNotImplemented, nil)
+	var originalArtifact models.Artifact
+	var patchArtifact models.ArtifactPatch
+
+	// Get request body
+	if err := c.BindJSON(&patchArtifact); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Bad Request"})
+		return
+	}
+
+	artifactType := c.Param("artifact_type")
+	artifactGUID := c.Param("artifact_guid")
+
+	originalArtifactBytes, err := models.Provider.Retrieve(
+		fmt.Sprintf("%s/%s/%s",
+			constants.ArtifactCatalogUri,
+			artifactType,
+			artifactGUID,
+		),
+	)
+
+	json.Unmarshal(originalArtifactBytes, &originalArtifact)
+
+	newArtifact := patchArtifactFunc(originalArtifact, patchArtifact)
+
+	if err != nil {
+		panic(err)
+	}
+
+	// Marshal object and store in backend
+	newArtifactJSON, err := json.Marshal(newArtifact)
+	if err != nil {
+		panic(err)
+	}
+
+	models.Provider.Store(
+		newArtifact.ArtifactUri,
+		newArtifactJSON,
+	)
+
+	if originalArtifact.ArtifactUri != newArtifact.ArtifactUri {
+		models.Provider.Delete(
+			originalArtifact.ArtifactUri,
+			false,
+		)
+	}
+	c.IndentedJSON(http.StatusOK, newArtifact)
 }
 
 func DeleteArtifact(c *gin.Context) {
